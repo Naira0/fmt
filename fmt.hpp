@@ -46,7 +46,7 @@ namespace fmt
         else if constexpr(
                 std::is_constructible_v<std::string, T>
                 && !std::is_same_v<T, std::nullptr_t>)
-            return value;
+            return std::string{value};
         else
             return fmt::to_string(value);
     }
