@@ -4,6 +4,7 @@
 #include <cstdio>
 #include <utility>
 #include <string_view>
+#include <sstream>
 
 namespace fmt
 {
@@ -17,15 +18,17 @@ namespace fmt
     template<is_iterable T>
     std::string to_string(const T& container);
 
-    template<typename... A>
-    static inline std::string to_string(const A&... a);
-
     template<typename A, typename B>
     std::string to_string(const std::pair<const A, B>& pair);
 
     inline std::string to_string(std::stringstream& ss)
     {
         return ss.str();
+    }
+
+    inline std::string to_string(char c)
+    {
+        return { c };
     }
 
     inline std::string to_string(std::nullptr_t ptr)
@@ -41,8 +44,12 @@ namespace fmt
     template<typename T>
     inline std::string string_of(const T& value)
     {
-        if constexpr(std::is_arithmetic_v<T> && !std::is_same_v<T, bool>)
+        // if not a number or a bool or a char convert it to a string
+        if constexpr(std::is_arithmetic_v<T>
+                && !std::is_same_v<T, bool>
+                && !std::is_same_v<T, char>)
             return std::to_string(value);
+        // if not null and can construct a string
         else if constexpr(
                 std::is_constructible_v<std::string, T>
                 && !std::is_same_v<T, std::nullptr_t>)
@@ -126,5 +133,18 @@ namespace fmt
     inline int print(std::string_view fmt, A&&... a)
     {
         return std::printf(format(fmt, std::forward<A>(a)...).data());
+    }
+
+    template<typename... A>
+    inline int println(std::string_view fmt, A&&... a)
+    {
+        return std::puts(format(fmt, std::forward<A>(a)...).data());
+    }
+
+    template<typename... A>
+    inline void fatal(std::string_view fmt, A&&... a)
+    {
+        std::printf(format(fmt, std::forward<A>(a)...).data());
+        std::exit(-1);
     }
 }
